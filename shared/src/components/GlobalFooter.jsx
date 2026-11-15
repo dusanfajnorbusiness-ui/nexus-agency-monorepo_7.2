@@ -194,33 +194,48 @@ export const GlobalFooter = ({
               />
             </div>
 
-            {/* ⚖️ VOP & SÚKROMIE */}
+             {/* ⚖️ VOP & SÚKROMIE */}
             <div className="flex items-center gap-3 text-[8px] font-black tracking-widest text-white/40">
-              <a
-                href="/vop"
+              <button
+                type="button"
                 onClick={(e) => {
+                  e.preventDefault();
+                  if (typeof window !== "undefined" && window.SoundFX?.click) {
+                    window.SoundFX.click();
+                  }
                   if (typeof onNavigate === "function") {
-                    e.preventDefault();
                     onNavigate("vop");
+                  } else {
+                    // Ak router beží cez hash alebo pathname
+                    window.location.hash = "vop";
+                    window.dispatchEvent(new CustomEvent("nexus-navigate", { detail: "vop" }));
                   }
                 }}
                 className="hover:text-white transition-colors uppercase cursor-pointer"
               >
                 VOP
-              </a>
+              </button>
+
               <span className="w-1 h-1 rounded-full bg-white/20"></span>
-              <a
-                href="/privacy"
+
+              <button
+                type="button"
                 onClick={(e) => {
+                  e.preventDefault();
+                  if (typeof window !== "undefined" && window.SoundFX?.click) {
+                    window.SoundFX.click();
+                  }
                   if (typeof onNavigate === "function") {
-                    e.preventDefault();
                     onNavigate("privacy");
+                  } else {
+                    window.location.hash = "privacy";
+                    window.dispatchEvent(new CustomEvent("nexus-navigate", { detail: "privacy" }));
                   }
                 }}
                 className="hover:text-white transition-colors uppercase cursor-pointer"
               >
                 Súkromie
-              </a>
+              </button>
             </div>
 
             <p>© {currentYear} NEXUS PROTOCOL. All Rights Reserved.</p>
