@@ -135,8 +135,19 @@ export const GlobalHamburgerMenu = ({
     if (path.includes("/messages") || path.includes("/inbox"))
       return "messages";
 
-    // 4. Koreňový uzol (Home)
-    if (path === "/" || path === "") return "home";
+    // 4. Koreňový uzol (Home) & Detekcia subdomény
+    const isAgencyHost =
+      typeof window !== "undefined" &&
+      (window.location.hostname.includes("agency") ||
+        window.location.port === "5174" ||
+        window.location.port === "5175");
+
+    if (path === "/" || path === "" || path === "/home") {
+      if (isAgencyHost) {
+        return "AGENCY"; // Vráti čistý kľúč pre Nexus Agency
+      }
+      return "HOME";
+    }
 
     // 5. Porty a portály
     if (path.includes("/agency")) return "agency";
@@ -152,16 +163,35 @@ export const GlobalHamburgerMenu = ({
 
   // 🎨 DYNAMICKÁ FARBA CHAMELEÓNA
   const activeColor = useMemo(() => {
+    const isAgency =
+      detectedTab === "AGENCY" ||
+      detectedTab === "agency" ||
+      (typeof window !== "undefined" &&
+        (window.location.hostname.includes("agency") ||
+          window.location.port === "5174" ||
+          window.location.port === "5175"));
+
+    // Ak sme na Agency, Cyan (#00f3ff) má 100% absolútnu prednosť pred zelenou zbernicou
+    if (isAgency) {
+      return "#00f3ff";
+    }
+
     if (
       effectiveThemeColor &&
       effectiveThemeColor !== "#39FF14" &&
+      effectiveThemeColor !== "#00ff66" &&
+      effectiveThemeColor !== "#10b981" &&
       effectiveThemeColor !== "#00f3ff"
     ) {
       return effectiveThemeColor;
     }
+
     const colorKey = String(detectedTab || "").toLowerCase();
+    const colorKeyUpper = String(detectedTab || "").toUpperCase();
+
     return (
       CHAMELEON_COLOR_MAP[colorKey] ||
+      CHAMELEON_COLOR_MAP[colorKeyUpper] ||
       CHAMELEON_COLOR_MAP[activeTab] ||
       "#00f3ff"
     );
