@@ -396,6 +396,10 @@ export function App() {
               sector={currentSector}
               tier={currentTier}
               themeColor={themeColor}
+              onNavigate={(route) => {
+                navigate(route.startsWith("/") ? route : `/${route}`);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
               onOpenSystemLog={() => setIsSystemLogOpen(true)}
               onOpenLog={() => setIsSystemLogOpen(true)}
             />
