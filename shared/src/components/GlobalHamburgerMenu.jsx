@@ -1,18 +1,19 @@
-import { HAMBURGER_MENU_DATA } from "@shared/data/MenuHamburgerData.js";
-import { Menu, X } from "lucide-react";
-import * as LucideIcons from "lucide-react";
 /* eslint-disable no-undef */
+// ============================================================================
+// 👑 NEXUS OS: GLOBÁLNE HAMBURGER MENU (CHAMELEÓN PROTOKOL & HYBRID ROUTING V20.95)
+// Súbor: @shared/components/GlobalHamburgerMenu.jsx
+// Status: 100% GROUNDED // CHAMELEON COLOR ENGINE // DUAL ROUTE + ACCORDIONS
+// Core Version: BC-HAMBURGER-MENU V20.95
+// ============================================================================
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import { HAMBURGER_MENU_DATA } from "@shared/data/MenuHamburgerData.js";
+import { useNexusThemeProps } from "@shared/components/NexusThemePropsContext.jsx";
 
-// ============================================================================
-// 👑 NEXUS OS: GLOBÁLNE HAMBURGER MENU (CHAMELEÓN PROTOKOL & HYBRID ROUTING V20)
-// Súbor: src/components/GlobalHamburgerMenu.jsx
-// Status: 100% GROUNDED // CHAMELEON COLOR ENGINE // DUAL ROUTE + SMOOTH SCROLL
-// Core Version: BC-HAMBURGER-MENU V20.65
-// ============================================================================
-
-// 🎨 KÁNONICKÁ FAREBNÁ MATICA SEKTOROV A DIMENZIÍ (CHAMELEÓN PROTOKOL)
+// 🎨 KÁNONICKÁ FAREBNÁ MATICA SEKTOROV A SUBDOMÉN (CHAMELEÓN PROTOKOL)
 const CHAMELEON_COLOR_MAP = {
   uplink: "#00f3ff",
   home: "#39FF14",
@@ -29,44 +30,51 @@ const CHAMELEON_COLOR_MAP = {
   admin: "#FF003C",
   profil: "#39FF14",
   messages: "#3B82F6",
-  // 16 Kognitívnych Dimenzií (ID00 - ID15)
-  id00: "#FFFFFF",
-  id01: "#39FF14",
-  id02: "#FFEB3B",
-  id03: "#FFD700",
-  id04: "#FFAA00",
-  id05: "#FF8C00",
-  id06: "#BF00FF",
-  id07: "#8A2BE2",
-  id08: "#00f3ff",
-  id09: "#FF003C",
-  id10: "#0044FF",
-  id11: "#FFBF00",
-  id12: "#00E5FF",
-  id13: "#00008B",
-  id14: "#FF1493",
-  id15: "#8A8A8A",
-  // Systémové Porty
-  sys01: "#FF0000",
-  sys02: "#E91E63",
-  sys03: "#BF00FF",
-  sys04: "#FF0000",
-  sys05: "#39FF14",
+  // 16 Kognitívnych Subdomén (SUB00 - SUB15)
+  sub00: "#FFFFFF",
+  sub01: "#39FF14",
+  sub02: "#FFEB3B",
+  sub03: "#FFD700",
+  sub04: "#FFAA00",
+  sub05: "#FF8C00",
+  sub06: "#BF00FF",
+  sub07: "#8A2BE2",
+  sub08: "#00f3ff",
+  sub09: "#FF003C",
+  sub10: "#0044FF",
+  sub11: "#FFBF00",
+  sub12: "#00E5FF",
+  sub13: "#00008B",
+  sub14: "#FF1493",
+  sub15: "#4A4A4A",
 };
 
 export const GlobalHamburgerMenu = ({
   activeTab = "home",
   themeColor = null,
+  activeSubId = null,
+  currentSector = null,
   targetScrollId = null,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Napojenie na globálny kontext pre reaktívny chameleon efekt
+  let contextTheme = {};
+  try {
+    contextTheme = useNexusThemeProps() || {};
+  } catch (e) {
+    contextTheme = {};
+  }
+
+  const effectiveSubId = activeSubId || contextTheme.activeSubId || null;
+  const effectiveThemeColor = themeColor || contextTheme.themeColor || null;
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMasterHidden, setIsMasterHidden] = useState(false);
-
   const [activeModal, setActiveModal] = useState(null);
 
+  // Systémové poslucháče modálov
   useEffect(() => {
     const handleOpenProfil = () => setActiveModal("profil");
     const handleCloseProfil = () => setActiveModal(null);
@@ -86,34 +94,34 @@ export const GlobalHamburgerMenu = ({
     };
   }, []);
 
-  // Sound FX Triggers
+  // Sound FX Triggery s defenzívnym fallbackom
   const triggerHover = () =>
-    typeof SoundFX !== "undefined" && SoundFX.hover && SoundFX.hover();
+    typeof SoundFX !== "undefined" && SoundFX?.hover && SoundFX.hover();
   const triggerClick = () =>
-    typeof SoundFX !== "undefined" && SoundFX.click && SoundFX.click();
+    typeof SoundFX !== "undefined" && SoundFX?.click && SoundFX.click();
 
-  // Režim Skrytia z LocalStorage
+  // Režim skrytia z LocalStorage
   useEffect(() => {
     const hiddenState = localStorage.getItem("nexus_hide_hamburger");
     if (hiddenState === "true") setIsMasterHidden(true);
   }, []);
 
-  const userTier = useMemo(() => {
-    try {
-      const raw = localStorage.getItem("nexus_active_identity");
-      if (raw) return JSON.parse(raw)?.tier?.toUpperCase() || "QUEST";
-    } catch (e) {}
-    return "QUEST"; // Default je QUEST (Host)
-  }, []);
-
-  const isArchitect = userTier === "ARCHITECT" || userTier === "MASTER";
-  const isRegisteredUser = userTier !== "QUEST" && userTier !== "GUEST"; // Kontrola pre Inbox
-
-  // 🧠 AUTO-SENSE KONTEXTU Z URL LIŠTY (Rieši prepínanie medzi 6 súrodencami a dimenziami)
+  // 🧠 AUTO-SENSE KONTEXTU Z URL LIŠTY A SUBDOMÉNY
   const detectedTab = useMemo(() => {
+    if (effectiveSubId && HAMBURGER_MENU_DATA[effectiveSubId]) {
+      return effectiveSubId;
+    }
+
     const path = String(location.pathname || "").toLowerCase();
 
-    // 1. ŠESŤ SÚRODENCOV OBCHODU (Najvyššia priorita detekcie z URL)
+    // 1. Detekcia subdoménových ciest (napr. /sub00, /sub05)
+    const subMatch = path.match(/\/sub(\d{2})/i);
+    if (subMatch && subMatch.at(0)) {
+      const subKey = subMatch.at(0).replace("/", "").toUpperCase();
+      if (HAMBURGER_MENU_DATA[subKey]) return subKey;
+    }
+
+    // 2. Šesť súrodencov obchodu
     if (path.includes("/shop/audios") || path === "/audios") return "audios";
     if (path.includes("/shop/videos") || path === "/videos") return "videos";
     if (path.includes("/shop/images") || path === "/images") return "images";
@@ -121,10 +129,8 @@ export const GlobalHamburgerMenu = ({
       return "documents";
     if (path.includes("/shop/apps") || path === "/apps") return "apps";
 
-    // 2. Ak je explicitne aktívny modál
+    // 3. Modály
     if (activeModal) return activeModal;
-
-    // 3. Modály / trasy v URL
     if (path.includes("/profil") || path.includes("/profile")) return "profil";
     if (path.includes("/messages") || path.includes("/inbox"))
       return "messages";
@@ -132,7 +138,7 @@ export const GlobalHamburgerMenu = ({
     // 4. Koreňový uzol (Home)
     if (path === "/" || path === "") return "home";
 
-    // 5. Obchod & Agency & Jadrové moduly
+    // 5. Porty a portály
     if (path.includes("/agency")) return "agency";
     if (path.startsWith("/shop")) return "shop";
     if (path.includes("/blog")) return "blog";
@@ -141,22 +147,25 @@ export const GlobalHamburgerMenu = ({
     if (path.includes("/settings")) return "settings";
     if (path.includes("/admin")) return "admin";
 
-    // Fallback na activeTab len ak URL neobsahuje známu trasu
     return activeTab && activeTab !== "home" ? activeTab : "home";
-  }, [location.pathname, activeTab, activeModal]);
+  }, [location.pathname, activeTab, activeModal, effectiveSubId]);
 
-  // 🎨 DYNAMICKÁ FARBA CHAMELEÓNA (Priority: 1. Ručný prop -> 2. Auto-detegovaný kľúč -> 3. activeTab -> 4. Default Cyan)
+  // 🎨 DYNAMICKÁ FARBA CHAMELEÓNA
   const activeColor = useMemo(() => {
-    if (themeColor && themeColor !== "#39FF14" && themeColor !== "#00f3ff") {
-      return themeColor;
+    if (
+      effectiveThemeColor &&
+      effectiveThemeColor !== "#39FF14" &&
+      effectiveThemeColor !== "#00f3ff"
+    ) {
+      return effectiveThemeColor;
     }
+    const colorKey = String(detectedTab || "").toLowerCase();
     return (
-      CHAMELEON_COLOR_MAP[detectedTab] ||
+      CHAMELEON_COLOR_MAP[colorKey] ||
       CHAMELEON_COLOR_MAP[activeTab] ||
-      themeColor ||
       "#00f3ff"
     );
-  }, [themeColor, detectedTab, activeTab]);
+  }, [effectiveThemeColor, detectedTab, activeTab]);
 
   // Výber dátového poľa z SSOT databázy
   const currentMenu = useMemo(() => {
@@ -168,12 +177,13 @@ export const GlobalHamburgerMenu = ({
     );
   }, [detectedTab, activeTab]);
 
-  const [openSections, setOpenSections] = useState({ 0: true }); // Prvá sekcia je defaultne otvorená
+  // Prvá sekcia je defaultne otvorená
+  const [openSections, setOpenSections] = useState({ 0: true });
 
-  // Transformácia zoznamu z MenuHamburgerData.js na zbaľovacie spoiler sekcie
+  // Transformácia zoznamu z MenuHamburgerData.js na zbaľovacie spoiler sekcie (podľa isDivider)
   const groupedSections = useMemo(() => {
     const sections = [];
-    let currentSection = { title: " HLAVNÉ LINKY", items: [] };
+    let currentSection = { title: "HLAVNÉ LINKY", items: [] };
 
     currentMenu.forEach((item) => {
       if (item.isDivider) {
@@ -197,155 +207,112 @@ export const GlobalHamburgerMenu = ({
     setOpenSections((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  // ⚡ DUAL-ACTION HANDLER: NAVIGÁCIA + PLYNULÝ SCROLL (V20 KÁNON)
+  // ⚡ DUAL-ACTION HANDLER: NAVIGÁCIA + PLYNULÝ SCROLL
   const handleItemClick = (item) => {
     triggerClick();
 
-    // 🌐 Ak je odkaz externá doména (https://...), otvor v novom okne alebo presmeruj
-    if (item.isExternal || (item.url && item.url.startsWith("http"))) {
-      window.open(item.url, "_blank", "noopener,noreferrer");
+    // 🛑 1. POLOŽKY VO VÝVOJI -> ZOSTÁVAJÚ HLUCHÉ, MENU SA NEZAVRIE
+    if (item.inDevelopment || item.url === "#") {
       return;
     }
 
-    // 0. Ak klikne na "Písať / Otvoriť Klávesnicu" -> Vynúti focus na cieľový input
-    if (item.actionTab === "focus_input" || item.targetInputId) {
+    // 🌐 2. SKUTOČNÉ EXTERNÉ LINKY (Iba tie, čo začínajú na http/https) -> NOVÉ OKNO
+    const isAbsoluteHttp =
+      item.url &&
+      (item.url.startsWith("http://") || item.url.startsWith("https://"));
+    if (isAbsoluteHttp) {
+      window.open(item.url, "_blank", "noopener,noreferrer");
       setIsOpen(false);
+      return;
+    }
 
-      // 🧠 Dynamic targeting podľa aktuálneho portu
-      let targetId = item.targetInputId;
+    // 🚪 3. ZATVORENIE MODÁLOV PRI INTERNEJ ZMENE
+    window.dispatchEvent(new CustomEvent("nexus_close_profil_modal"));
+    window.dispatchEvent(new CustomEvent("nexus_close_inbox_modal"));
 
-      if (detectedTab === "messages" || activeTab === "messages") {
-        targetId = "nexus-inbox-input";
-        window.dispatchEvent(new CustomEvent("nexus_open_inbox_modal"));
-      } else if (detectedTab === "profil" || activeTab === "profil") {
-        targetId = "nexus-profil-dossier-input";
-        window.dispatchEvent(new CustomEvent("nexus_open_profil_modal"));
-      } else {
-        // Pre Home / Shop / Blog zhasne modály a zacieli hlavné search pole
-        window.dispatchEvent(new CustomEvent("nexus_close_profil_modal"));
-        window.dispatchEvent(new CustomEvent("nexus_close_inbox_modal"));
-        targetId = item.targetInputId || "nexus-global-search-input";
+     // Ak klikneš na HOME, HOMEPAGE alebo SUBDOMÉNY MATRIX
+    if (item.id === "HOME" || item.url === "/home" || item.url === "/") {
+      window.dispatchEvent(
+        new CustomEvent("nexus_select_subdomain", { detail: "HOME" })
+      );
+      navigate("/home");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setIsOpen(false);
+      return;
+    }
+
+    // 3. Kliknutie na SUBDOMÉNU (SUB00 - SUB15)
+    if (item.id && String(item.id).startsWith("SUB")) {
+      window.dispatchEvent(
+        new CustomEvent("nexus_select_subdomain", { detail: item.id })
+      );
+      if (item.url) navigate(item.url);
+      setIsOpen(false);
+      return;
+    }
+
+    // 4. Externé linky (Agency, Shop, soc. siete)
+    if (item.isExternal && item.url && !item.url.startsWith("/")) {
+      window.open(item.url, "_blank", "noopener,noreferrer");
+      setIsOpen(false);
+      return;
+    }
+
+    // A) Ak ide o sektor alebo tier filter v Nexus Agency:
+    if (item.isFilterAction) {
+      if (item.url && item.url.includes("?")) {
+        navigate(item.url);
       }
 
+      // 1. Ak klikne na SEKTOR -> nastaví sektor a tier vyčistí na "ALL"
+      if (item.sectorId) {
+        window.dispatchEvent(
+          new CustomEvent("nexus_agency_set_sector", { detail: item.sectorId })
+        );
+        window.dispatchEvent(
+          new CustomEvent("nexus_agency_set_tier", { detail: "ALL" })
+        );
+      }
+
+      // 2. Ak klikne na TIER -> nastaví tier a sektor vyčistí na "ALL" (zamedzí prázdnej kategórii!)
+      if (item.tierId) {
+        let cleanTier = String(item.tierId || "").toUpperCase();
+        if (cleanTier.startsWith("PRO")) cleanTier = "PRO";
+        else if (cleanTier.startsWith("OMEGA")) cleanTier = "OMEGA";
+        else if (cleanTier.startsWith("MASTER")) cleanTier = "MASTER";
+        else if (cleanTier.startsWith("FREE")) cleanTier = "FREE";
+
+        window.dispatchEvent(
+          new CustomEvent("nexus_agency_set_tier", { detail: cleanTier })
+        );
+        window.dispatchEvent(
+          new CustomEvent("nexus_agency_set_sector", { detail: "ALL" })
+        );
+      }
+
+      // 3. Plynulý scroll priamo k zoznamu kariet
       setTimeout(() => {
-        const inputEl = document.getElementById(targetId);
-        if (inputEl) {
-          inputEl.style.pointerEvents = "auto";
-          inputEl.focus();
-          inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        const targetElement =
+          document.getElementById("agency-services-anchor") ||
+          document.querySelector("main") ||
+          document.getElementById("agency-filters");
+
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }, 100);
-      return;
-    }
 
-    // 1. Ak klikne na Profil Operátora -> Otvor vyskakovací Profil Modál
-    if (item.actionTab === "open_profil" || item.url === "/profil") {
-      window.dispatchEvent(new CustomEvent("nexus_close_inbox_modal"));
-      window.dispatchEvent(new CustomEvent("nexus_open_profil_modal"));
       setIsOpen(false);
       return;
     }
 
-    // 2. Ak klikne na Inbox -> Otvor vyskakovací Inbox Terminál (len pre prihlásených)
-    if (item.actionTab === "open_inbox" || item.url === "/messages") {
-      if (!isRegisteredUser) {
-        // Ak je QUEST -> Vyzve ho na prihlásenie / otvoria sa Quest Auth zábrany
-        window.dispatchEvent(
-          new CustomEvent("nexus_open_quest_auth", {
-            detail: { reason: "inbox_locked" },
-          }),
-        );
-      } else {
-        // Ak je prihlásený -> Otvorí sa Inbox vyskakovacie okno
-        window.dispatchEvent(new CustomEvent("nexus_close_profil_modal"));
-        window.dispatchEvent(new CustomEvent("nexus_open_inbox_modal"));
-      }
-      setIsOpen(false);
-      return;
-    }
-
-    // 3. Ak klikne na akúkoľvek inú navigáciu v systéme -> ZATVOR VŠETKY MODÁLY
+    // 5. Interné trasy (/vop, /privacy)
     if (item.url) {
-      window.dispatchEvent(new CustomEvent("nexus_close_profil_modal"));
-      window.dispatchEvent(new CustomEvent("nexus_close_inbox_modal"));
-    }
-
-    // A) Externý odkaz
-    if (item.targetUrl) {
-      window.open(item.targetUrl, "_blank", "noopener,noreferrer");
-      setIsOpen(false);
-      return;
-    }
-
-    // B) Lokálny signál pre tab/akordeón (actionTab / radarAction)
-    if (item.actionTab || item.radarAction) {
-      window.dispatchEvent(
-        new CustomEvent("nexus_switch_local_tab", {
-          detail: item.actionTab || item.radarAction,
-        }),
-      );
-    }
-
-    const hasUrl = Boolean(item.url);
-    const hasTargetId = Boolean(item.targetId);
-    const currentBase = location.pathname.toLowerCase();
-    const targetBase = hasUrl ? item.url.split("?")[0].toLowerCase() : "";
-    const isDifferentPath = hasUrl && currentBase !== targetBase;
-
-    // C) Sme na inej stránke -> Navigujeme na novú URL
-    if (isDifferentPath) {
       navigate(item.url);
-      setIsOpen(false);
-
-      // Ak je zadané targetId, po prechode na novú stránku doscrollujeme na element
-      if (hasTargetId) {
-        let attempts = 0;
-        const scan = setInterval(() => {
-          const el = document.getElementById(item.targetId);
-          if (el) {
-            clearInterval(scan);
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-          if (++attempts > 25) clearInterval(scan);
-        }, 100);
-      }
-      return;
-    }
-
-    // D) Sme na rovnakej stránke, ale menia sa filtre v URL (?cat=..., ?tier=...)
-    if (hasUrl && item.url.includes("?")) {
-      navigate(item.url);
-    }
-
-    // D2) Klik na Home bez kotvy na existujúcej stránke -> Reset na vrch
-    if (hasUrl && item.url === "/" && !hasTargetId && currentBase === "/") {
       window.scrollTo({ top: 0, behavior: "smooth" });
+      setIsOpen(false);
+      return;
     }
-
-    // E) Plynulý Scroll na element v rámci existujúcej stránky
-    if (hasTargetId) {
-      const targetEl = document.getElementById(item.targetId);
-      if (targetEl) {
-        if (item.targetId.startsWith("SEC_")) {
-          targetEl.click(); // Kliknutie na sekčné tlačidlo
-        }
-
-        if (targetScrollId) {
-          const scrollContainer = document.getElementById(targetScrollId);
-          if (scrollContainer) {
-            scrollContainer.scrollTo({
-              top: targetEl.offsetTop - 20,
-              behavior: "smooth",
-            });
-          }
-        } else {
-          const y = targetEl.getBoundingClientRect().top + window.scrollY - 80;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      }
-    }
-
-    setIsOpen(false);
   };
 
   const toggleMenu = () => {
@@ -379,7 +346,7 @@ export const GlobalHamburgerMenu = ({
                 className="w-1.5 h-1.5 rounded-full animate-ping"
                 style={{ backgroundColor: activeColor }}
               />
-              PORT: {detectedTab.toUpperCase()}
+              PORT: {String(detectedTab || "").toUpperCase()}
             </span>
             <button
               onClick={() => setIsOpen(false)}
@@ -416,25 +383,79 @@ export const GlobalHamburgerMenu = ({
                       {sec.items.map((item, iIdx) => {
                         const IconComponent =
                           LucideIcons[item.icon] || LucideIcons.Circle;
+                        const isDeadLink =
+                          item.inDevelopment || item.url === "#";
+
                         return (
                           <button
                             key={`item-${sIdx}-${iIdx}`}
                             onClick={() => handleItemClick(item)}
-                            className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-zinc-300 hover:text-white transition-all text-left text-xs font-bold cursor-pointer group"
+                            className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg transition-all text-left text-xs font-bold ${
+                              isDeadLink
+                                ? "text-zinc-500 hover:text-zinc-400 hover:bg-white/[0.03] cursor-default"
+                                : "text-zinc-300 hover:text-white hover:bg-white/10 cursor-pointer group"
+                            }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <IconComponent
                                 size={13}
-                                className="group-hover:scale-110 transition-transform shrink-0"
-                                style={{ color: activeColor }}
+                                className={`shrink-0 transition-transform ${
+                                  !isDeadLink && "group-hover:scale-110"
+                                }`}
+                                style={{
+                                  color: isDeadLink
+                                    ? "#555555"
+                                    : item.themeColor || activeColor,
+                                }}
                               />
-                              <span className="truncate text-[11px]">
-                                {item.label}
-                              </span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="truncate text-[11px]">
+                                  {item.label || item.name || "SUBDOMÉNA"}
+                                </span>
+                                {Boolean(
+                                  item.isLiveSubdomain && item.subdomain,
+                                ) && (
+                                  <span className="text-[8px] text-zinc-500 font-mono truncate">
+                                    {item.subdomain}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            {item.url && (
+
+                            {item.isLiveSubdomain && (
+                              <span
+                                className="text-[7px] font-mono px-1 py-0.2 rounded border shrink-0 uppercase tracking-tighter"
+                                style={{
+                                  borderColor: `${item.themeColor || activeColor}60`,
+                                  color: item.themeColor || activeColor,
+                                }}
+                              >
+                                {item.subNumber || "SUB"}
+                              </span>
+                            )}
+
+                            {typeof item.badgeCount !== "undefined" && (
+                              <span
+                                className="text-[9px] font-mono px-1.5 py-0.5 rounded border shrink-0 font-bold tracking-tight"
+                                style={{
+                                  borderColor: `${item.themeColor || activeColor}50`,
+                                  color: item.themeColor || activeColor,
+                                  backgroundColor: `${item.themeColor || activeColor}15`,
+                                }}
+                              >
+                                {item.badgeCount}
+                              </span>
+                            )}
+
+                            {!item.isLiveSubdomain && typeof item.badgeCount === "undefined" && !isDeadLink && (
                               <span className="text-[7px] font-mono text-zinc-600 group-hover:text-zinc-400 shrink-0 uppercase">
                                 LINK
+                              </span>
+                            )}
+
+                            {isDeadLink && (
+                              <span className="text-[7px] font-mono text-zinc-700 shrink-0 uppercase">
+                                DEV
                               </span>
                             )}
                           </button>

@@ -76,6 +76,30 @@ export const NexusAgencyPage = ({
     setLayoutView("GRID_3");
   };
 
+  useEffect(() => {
+    // 1. Zmena primárneho sektoru (7 kategórií)
+    const onSectorChange = (e) => {
+      if (e.detail) {
+        setActiveSubcat(e.detail);
+      }
+    };
+
+    // 2. Zmena sekundárneho tieru (4 tiery)
+    const onTierChange = (e) => {
+      if (e.detail) {
+        setActiveTier(e.detail);
+      }
+    };
+
+    window.addEventListener("nexus_agency_set_sector", onSectorChange);
+    window.addEventListener("nexus_agency_set_tier", onTierChange);
+
+    return () => {
+      window.removeEventListener("nexus_agency_set_sector", onSectorChange);
+      window.removeEventListener("nexus_agency_set_tier", onTierChange);
+    };
+  }, []);
+
   // 🧮 PRECIZIA DVOJÚROVŇOVÉHO FILTROVANIA 18 SLUŽIEB
   const filteredServices = useMemo(() => {
     return servicesList.filter((srv) => {
@@ -105,8 +129,8 @@ export const NexusAgencyPage = ({
       {/* 1. HLAVIČKA AGENTÚRY JE UŽ V APP.JSX — TENTO RIADOK ODSTRÁŇ / ZAKOMENTUJ: */}
       {/* <AgencyHeader /> */}
 
-      {/* MAIN CONTENT CONTAINER */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-12">
+      {/* MAIN CONTENT CONTAINER — ODSTRÁNENÝ BRUTÁLNY VRCHNÝ PADDING */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 md:pt-4 pb-12 space-y-10">
         {/* HERO BRAND MANIFESTO HEADER */}
         <header className="space-y-6 text-center md:text-left">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-white/10 pb-8">
@@ -165,7 +189,7 @@ export const NexusAgencyPage = ({
         </section>
 
         {/* 3. VYKRESLOVANIE 18 SLUŽIEB CEZ V20 AGENCY SERVICE CARD */}
-        <main className="space-y-6">
+        <main id="agency-services-anchor" className="space-y-6 scroll-mt-28">
           <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs text-zinc-400">
             <span className="font-bold uppercase tracking-wider text-[#00f3ff]">
               Zobrazených: {filteredServices.length} z {servicesList.length} B2B
